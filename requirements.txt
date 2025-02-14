@@ -1,0 +1,7 @@
+ultralytics
+rknn-toolkit2
+numpy
+opencv-python
+torch
+torchvision
+PyYAML

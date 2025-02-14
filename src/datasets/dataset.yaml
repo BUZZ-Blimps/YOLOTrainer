@@ -1,0 +1,13 @@
+names:
+- Green Balloon
+- Orange Circle
+- Orange Square
+- Orange Triangle
+- Purple Balloon
+- Yellow Circle
+- Yellow Square
+- Yellow Triangle
+nc: 8
+path:
+train: images
+val: images
