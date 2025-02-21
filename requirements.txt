@@ -5,3 +5,9 @@ opencv-python
 torch
 torchvision
 PyYAML
+onnx
+onnxruntime
+tqdm
+matplotlib
+scipy
+protobuf

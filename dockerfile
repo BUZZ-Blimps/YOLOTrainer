@@ -1,43 +1,37 @@
-# Use Ubuntu 22.04 base image
+# Use official Ubuntu 22.04 image
 FROM ubuntu:22.04
 
-# Set working directory
-WORKDIR /app
+# Set noninteractive mode for apt
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    python3.8 \
-    python3.8-venv \
-    git \
-    wget \
-    unzip \
-    && rm -rf /var/lib/apt/lists/*
+    python3.10 python3.10-venv python3-pip \
+    wget unzip git curl nano \
+    && apt-get clean
 
-# Create virtual environment
-RUN python3.8 -m venv /app/rknn-env
+# Set Python3.10 as default
+RUN ln -sf /usr/bin/python3.10 /usr/bin/python
 
-# Activate virtual environment and install RKNN-Toolkit2
-RUN source /app/rknn-env/bin/activate && \
-    wget https://github.com/airockchip/rknn-toolkit2/archive/refs/tags/v2.3.0.tar.gz && \
-    tar -zxvf v2.3.0.tar.gz && \
-    cd rknn-toolkit2-2.3.0/rknn-toolkit2/packages/x86_64/ && \
-    pip install -r requirements_cp38-2.3.0.txt && \
-    pip install rknn_toolkit2-2.3.0-cp38-cp38-linux_x86_64.whl
+# Create a virtual environment at /opt/venv
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
-# Copy requirement files
-COPY requirements.txt .
+# Copy requirements file and install dependencies
+WORKDIR /app
+COPY requirements.txt /app/
+RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# Install dependencies inside virtual environment
-RUN source /app/rknn-env/bin/activate && pip install -r requirements.txt
+# Copy the entire project into the container
+COPY . /app
 
-# Copy source code
-COPY src/ /app/src/
+# Ensure entrypoint.sh is executable
+RUN chmod +x entrypoint.sh
 
-# Ensure scripts are executable
-RUN chmod +x /app/src/*.py
+# Expose ports if needed (e.g., 8888)
+EXPOSE 8888
 
-# Copy configuration file
-COPY config.yaml /app/config.yaml
+# Set entrypoint to our entrypoint.sh script and pass default CMD argument (-untagged)
+CMD ["-untagged"]
 
-# Set the default command (can be overridden)
-CMD ["bash"]
+ENTRYPOINT ["bash", "/app/entrypoint.sh"]
