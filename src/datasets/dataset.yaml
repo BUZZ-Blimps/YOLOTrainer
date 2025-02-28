@@ -8,6 +8,6 @@ names:
 - Yellow Square
 - Yellow Triangle
 nc: 8
-path:
+path: datasets
 train: images
 val: images

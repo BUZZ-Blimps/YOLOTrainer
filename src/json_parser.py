@@ -3,10 +3,10 @@ import os
 import yaml
 
 # Define dataset paths
-json_path = "datasets/result.json"         # Your COCO-style JSON file
-images_folder = "datasets/images/"           # Folder containing the images
-labels_folder = "datasets/labels/"           # Folder where YOLO label files will be saved
-output_yaml_path = "datasets/dataset.yaml"   # Output YAML file for YOLO
+json_path = "src/datasets/result.json"         # Your COCO-style JSON file
+images_folder = "src/datasets/images/"           # Folder containing the images
+labels_folder = "src/datasets/labels/"           # Folder where YOLO label files will be saved
+output_yaml_path = "src/datasets/dataset.yaml"   # Output YAML file for YOLO
 
 # Ensure the labels directory exists
 os.makedirs(labels_folder, exist_ok=True)

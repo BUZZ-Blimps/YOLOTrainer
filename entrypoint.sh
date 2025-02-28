@@ -15,7 +15,7 @@ if [ "$1" = "-tagged" ]; then
     cp -r "$2"/* /app/src/datasets/
     # Convert COCO to YOLO format
     echo "Converting COCO to YOLO..."
-    python3 /app/src/convert_coco_to_yolo.py
+    python3 src/json_parser.py
 elif [ "$1" = "-untagged" ]; then
     [ -z "$2" ] && echo "Error: -untagged requires dataset path" && exit 1
     echo "Copying untagged dataset from $2..."
@@ -26,13 +26,13 @@ else
 fi
 
 # Activate virtual environment and run training
-source /opt/venv/bin/activate
-cd /app/src
+#source /opt/venv/bin/activate
+#cd /app/src
 
 echo "Training model..."
-python3 train.py
+python3 src/train.py
 
 echo "Converting to RKNN..."
-python3 convert.py
+python3  src/convert.py
 
 echo "✅ All operations completed!"
