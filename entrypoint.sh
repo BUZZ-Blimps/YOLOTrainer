@@ -3,44 +3,36 @@ set -e
 
 echo "🚀 Starting YOLO Trainer Container"
 
-# Delete previous dataset cache from src/datasets and recreate the folder
-echo "Deleting old dataset cache in /app/src/datasets..."
+# Delete previous dataset cache and recreate folders
+echo "Clearing old datasets..."
 rm -rf /app/src/datasets/*
-mkdir -p /app/src/datasets
+mkdir -p /app/src/datasets/{images,labels}
 
-# Check for launch arguments: either -tagged or -untagged must be provided with a dataset path
+# Validate arguments and copy dataset
 if [ "$1" = "-tagged" ]; then
-    if [ -z "$2" ]; then
-        echo "Error: -tagged option requires a dataset folder path as the second argument."
-        exit 1
-    fi
-    echo "Tagged training selected. Copying dataset from $2 to /app/src/datasets..."
+    [ -z "$2" ] && echo "Error: -tagged requires dataset path" && exit 1
+    echo "Copying tagged dataset from $2..."
     cp -r "$2"/* /app/src/datasets/
+    # Convert COCO to YOLO format
+    echo "Converting COCO to YOLO..."
+    python3 /app/src/convert_coco_to_yolo.py
 elif [ "$1" = "-untagged" ]; then
-    if [ -z "$2" ]; then
-        echo "Error: -untagged option requires a dataset folder path as the second argument."
-        exit 1
-    fi
-    echo "Untagged training selected. Copying dataset from $2 to /app/src/datasets..."
+    [ -z "$2" ] && echo "Error: -untagged requires dataset path" && exit 1
+    echo "Copying untagged dataset from $2..."
     cp -r "$2"/* /app/src/datasets/
 else
-    echo "Usage: entrypoint.sh -tagged <dataset_path> OR entrypoint.sh -untagged <dataset_path>"
+    echo "Usage: $0 -tagged <path> OR -untagged <path>"
     exit 1
 fi
 
-# Activate the virtual environment
-echo "Activating virtual environment..."
+# Activate virtual environment and run training
 source /opt/venv/bin/activate
-
-# Change directory to src (where training and conversion scripts are located)
 cd /app/src
 
-# Run the training script
-echo "Running training..."
+echo "Training model..."
 python3 train.py
 
-# Run the conversion script
-echo "Running RKNN conversion..."
+echo "Converting to RKNN..."
 python3 convert.py
 
-echo "✅ Training and conversion completed!"
+echo "✅ All operations completed!"

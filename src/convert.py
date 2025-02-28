@@ -2,23 +2,21 @@ import yaml
 import os
 from ultralytics import YOLO
 
-# Load configuration
+# Load conversion config
 with open("convert.yaml", "r") as file:
     config = yaml.safe_load(file)
 
-# Define paths
-trained_model_path = os.path.join(config["model"]["trained_model_dir"], config["model"]["trained_model_name"])
-export_folder = config["model"]["export_dir"]
-os.makedirs(export_folder, exist_ok=True)  # Ensure the export folder exists
+# Define paths relative to Docker structure
+model_dir = config["model"]["trained_model_dir"]
+model_name = config["model"]["trained_model_name"]
+export_dir = config["model"]["export_dir"]
 
-# Load the trained model
+trained_model_path = os.path.join(model_dir, model_name)
+os.makedirs(export_dir, exist_ok=True)
+
+# Export model
 model = YOLO(trained_model_path)
+export_path = os.path.join(export_dir, "model.rknn")
+model.export(format="rknn", name=export_path)
 
-# Correct RKNN export
-export_path = os.path.join(export_folder, "rk3588.rknn")
-
-# Export to RKNN format for RK3588
-model.export(format="rknn", name="rk3588")  # Target Rockchip processor
-#os.rename("best-rk3588.rknn", export_path)  # Move file to correct folder
-
-print(f"Model conversion to RKNN format completed.")
+print(f"✅ RKNN model saved to {export_path}")
