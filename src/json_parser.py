@@ -67,7 +67,7 @@ for base_name, lines in labels_by_image.items():
 
 # Create the dataset.yaml file for YOLO training
 dataset_yaml = {
-    "path": "datasets",     # Root folder; YOLO expects images in datasets/images and labels in datasets/labels
+    "path": "src/datasets",     # Root folder; YOLO expects images in datasets/images and labels in datasets/labels
     "train": "images",      # Training images folder (relative to 'path')
     "val": "images",        # Validation images folder (if using the same images)
     "nc": len(names),       # Number of classes

@@ -1,4 +1,4 @@
 model:
-  trained_model_dir: "yolo_model"
+  trained_model_dir: "runs/detect/train/weights"
   trained_model_name: "best.pt"
   export_dir: "converted_models"  # Directory where RKNN model will be saved

@@ -3,7 +3,7 @@ import yaml
 from ultralytics import YOLO
 
 # Correct path within Docker
-DATASET_PATH = "datasets/dataset.yaml"
+DATASET_PATH = "src/datasets/dataset.yaml"
 
 if not os.path.exists(DATASET_PATH):
     raise FileNotFoundError(f"dataset.yaml not found at {DATASET_PATH}")
@@ -13,13 +13,16 @@ with open(DATASET_PATH, "r") as file:
     dataset_config = yaml.safe_load(file)
     assert 'names' in dataset_config, "Invalid dataset.yaml format"
 
+
+DATASET_PATH = "src/datasets/dataset.yaml"
+
 # Train model
 model = YOLO("yolov8n.pt")  # Use correct model name
 model.train(
     data=DATASET_PATH,
-    epochs=150,
+    epochs=1,
     imgsz=640,
-    batch=32,
+    batch=32, 
     workers=4,
     device=0
 )
