@@ -1,0 +1,11 @@
+docker run --gpus all -v $(pwd)/output:/app/output -v /home/amia/Desktop/datasetcorrectr:/user_dataset --rm yolo-trainer -tagged /user_dataset
+
+
+sample training script 
+
+STILL FIXING
+
+Dude docker is about to drive meeeee nuts. I have been working SO LONG
+
+Make sure you dedicate enough ram and stuffs
+

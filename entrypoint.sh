@@ -3,104 +3,64 @@ set -e
 
 echo "🚀 Starting YOLO Trainer Container"
 
-# Delete previous dataset cache and recreate folders
-echo "Clearing old datasets..."
-rm -rf src/datasets/*
-mkdir -p src/datasets/images src/datasets/labels
+# Delete previous dataset cache in src/datasets and recreate folders
+echo "Clearing old dataset cache in /app/src/datasets..."
+rm -rf /app/src/datasets/*
+mkdir -p /app/src/datasets/images /app/src/datasets/labels
 
-# Delete previous dataset cache and recreate folders
-echo "Clearing old cached training files"
-sudo rm -rf runs/detect/*
-sudo mkdir -p runs/detect
+# Delete previous training outputs (runs/detect)
+echo "Clearing old training outputs in /app/runs/detect..."
+rm -rf /app/runs/detect/*
+mkdir -p /app/runs/detect
 
-
-
-# Validate arguments and copy dataset
+# Validate launch arguments and copy dataset.
+# NOTE: We assume the user will mount their dataset to a separate container path (e.g. /user_dataset)
 if [ "$1" = "-tagged" ]; then
     if [ -z "$2" ]; then
-        echo "Error: -tagged requires dataset path"
+        echo "Error: -tagged requires a dataset folder path"
         exit 1
     fi
-    echo "Copying tagged dataset from $2..."
-    cp -r "$2"/* src/datasets/
-    echo "Files in src/datasets after copying:"
-    ls -la src/datasets/
-    echo "Converting COCO to YOLO..."
+    echo "Tagged training selected. Copying dataset from $2 to /app/src/datasets..."
+    cp -r "$2"/* /app/src/datasets/
+    echo "Files in /app/src/datasets after copying:"
+    ls -la /app/src/datasets/
+    echo "Converting COCO annotations to YOLO format..."
     python3 src/json_parser.py
-
 elif [ "$1" = "-untagged" ]; then
-    [ -z "$2" ] && echo "Error: -untagged requires dataset path" && exit 1
-    echo "Copying untagged dataset from $2..."
+    if [ -z "$2" ]; then
+        echo "Error: -untagged requires a dataset folder path"
+        exit 1
+    fi
+    echo "Untagged training selected. Copying dataset from $2 to /app/src/datasets..."
     cp -r "$2"/* /app/src/datasets/
 else
-    echo "Usage: $0 -tagged <path> OR -untagged <path>"
+    echo "Usage: entrypoint.sh -tagged <dataset_path> OR entrypoint.sh -untagged <dataset_path>"
     exit 1
 fi
 
-
-
 # Activate the virtual environment
 echo "Activating virtual environment..."
-source test-env/bin/activate
+source /opt/venv/bin/activate
 
+# Change directory to src (where training and conversion scripts reside)
+cd /app/src
 
-echo "Training model..."
-test-env/bin/python3.10 src/train.py
+# Run the training script
+echo "Running training..."
+python3 train.py
 
-echo "Converting to RKNN..."
-test-env/bin/python3.10 src/convert.py
+# Run the conversion script
+echo "Running RKNN conversion..."
+python3 convert.py
 
-
-# Define the directory path
-TRAIN_DIR="/home/amia/Desktop/BLIMPBLIMP/YOLOTrainer/best_rknn_model/runs/detect/train"
-
-# Generate a timestamp (format: YYYYMMDD_HHMMSS)
-TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-
-# New directory name with timestamp
-NEW_TRAIN_DIR="/home/amia/Desktop/BLIMPBLIMP/YOLOTrainer/best_rknn_model/runs/detect/train_${TIMESTAMP}"
-
-# Rename the train directory if it exists
+# (Optional) Rename or copy training output directories as needed
+# Example: Renaming runs/detect/train to include a timestamp
+TRAIN_DIR="/app/runs/detect/train"
 if [ -d "$TRAIN_DIR" ]; then
+    TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+    NEW_TRAIN_DIR="/app/runs/detect/train_${TIMESTAMP}"
     mv "$TRAIN_DIR" "$NEW_TRAIN_DIR"
-    echo "✅ Renamed 'train' to 'train_${TIMESTAMP}'"
-else
-    echo "⚠️ Directory 'train' not found, skipping rename."
+    echo "Renamed 'train' to 'train_${TIMESTAMP}'"
 fi
 
-
-
-
-# Define the directory path
-TRAIN_DIR="/home/amia/Desktop/BLIMPBLIMP/YOLOTrainer/best_rknn_model/runs/detect/train"
-
-# Generate a timestamp (format: YYYYMMDD_HHMMSS)
-TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-
-# New directory name with timestamp
-NEW_TRAIN_DIR="/home/amia/Desktop/BLIMPBLIMP/YOLOTrainer/best_rknn_model/runs/detect/train_${TIMESTAMP}"
-
-# Rename the train directory if it exists
-if [ -d "$TRAIN_DIR" ]; then
-    mv "$TRAIN_DIR" "$NEW_TRAIN_DIR"
-    echo "✅ Renamed 'train' to 'train_${TIMESTAMP}'"
-fi
-
-
-# New directory name with timestamp
-TARGET_DIR="/home/amia/Desktop/BLIMPBLIMP/YOLOTrainer/best_rknn_model/runs/detect/train_${TIMESTAMP}"
-SOURCE_DIR="runs/detect/train"
-# Ensure the target parent directory exists
-mkdir -p "$(dirname "$TARGET_DIR")"
-
-# Check if the source directory exists before copying
-if [ -d "$SOURCE_DIR" ]; then
-    echo "Copying train directory to $TARGET_DIR..."
-    cp -r "$SOURCE_DIR" "$TARGET_DIR"
-    echo "✅ Train folder copied successfully to $TARGET_DIR"
-else
-    echo "⚠️ Source directory '$SOURCE_DIR' not found, skipping copy."
-fi
-
-
-echo "✅ All operations completed!"
+echo "✅ Training and conversion completed!"
