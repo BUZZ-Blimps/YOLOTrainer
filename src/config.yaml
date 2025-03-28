@@ -4,7 +4,7 @@ model:
   trained_model_name: "best.pt"
 
 training:
-  data: "datasets/balloons/dataset.yaml"
+  data: "datasets/dataset.yaml"  # Updated to match the generated file
   epochs: 150
   imgsz: 640
   batch: 128
